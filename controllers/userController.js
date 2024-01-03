@@ -75,4 +75,83 @@ const loginUser = async (req, res) => {
      }
 }
 
-export { signupUser, loginUser };
+const logoutUser = (req, res) => {
+     try {
+          res.cookie("jwt", "", { maxAge: 1 }); // set the jwt cookie to an empty string and set the maxAge to 1ms
+          res.status(200).json({ message: "User logged out successfully" });
+     }
+     catch (error) {
+          console.error(`Error: ${error.message}`);
+          res.status(500).json({ message: error.message });
+     }
+}
+
+const followUnfollowUser = async (req, res) => {
+     try {
+          const { id } = req.params; // id of the user to follow/unfollow
+          const userToModify = await User.findById(id); // user to follow/unfollow
+          const currentUser = await User.findById(req.user._id); // current user
+
+          const userId = req.user._id.toString(); // id of the current user
+          // id of the user who is trying to follow/unfollow yourself
+
+          if (id === userId) return res.status(400).json({ message: "You cannot follow/unfollow yourself" });
+
+          if (!userToModify || !currentUser) return res.status(400).json({ message: "User not found" });
+
+          const isFollowing = currentUser.following.includes(id); // check if the current user is already following the user to follow/unfollow
+
+          if (isFollowing) {
+               // if yes, then unfollow the user
+               await User.findByIdAndUpdate(userId, { $pull: { following: id } }); // remove the id of the user to follow/unfollow from the following array of the current user
+               await User.findByIdAndUpdate(id, { $pull: { followers: userId } }); // remove the id of the current user from the followers array of the user to follow/unfollow
+
+               res.status(200).json({ message: "User unfollowed successfully" });
+          }
+          else {
+               // if no, then follow the user
+               await User.findByIdAndUpdate(userId, { $push: { following: id } }); // add the id of the user to follow/unfollow to the following array of the current user
+               await User.findByIdAndUpdate(id, { $push: { followers: userId } }); // add the id of the current user to the followers array of the user to follow/unfollow
+               res.status(200).json({ message: "User followed successfully" });
+          }
+
+     }
+     catch (error) {
+          console.error(`Error of follow and unfollow: ${error.message}`);
+          res.status(500).json({ message: error.message });
+     }
+
+}
+
+const updateUser = async (req, res) => {
+     const { name, email, username, password, profilePic, bio } = req.body;
+     const userId = req.user._id.toString();
+
+     try {
+          let user = await User.findById(userId);
+          if (!user) return res.status(400).json({ message: "User not found" });
+
+          if(req.params.id !== userId) return res.status(400).json({ message: "You cannot update other user's profile" }); // check if the user is trying to update other user's profile
+          
+          if (password) {
+               const salt = await bcrypt.genSalt(10);
+               const hashedPassword = await bcrypt.hash(password, salt);
+               user.password = hashedPassword;
+          }
+
+          user.name = name || user.name;
+          user.email = email || user.email;
+          user.username = username || user.username;
+          user.profilePic = profilePic || user.profilePic;
+          user.bio = bio || user.bio;
+
+          user = await user.save();
+
+          res.status(200).json({ message: "User updated successfully", user });
+     } catch (error) {
+          console.error(`Error: ${error.message}`);
+          res.status(500).json({ message: error.message });
+     }
+}
+
+export { signupUser, loginUser, logoutUser, followUnfollowUser, updateUser };
