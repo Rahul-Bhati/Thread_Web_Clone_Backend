@@ -16,7 +16,7 @@ const postSchema = mongoose.Schema(
           },
           likes: {
                type: [mongoose.Schema.Types.ObjectId],
-               ref: "User",
+               ref: "User", // this is the model we are referring to
                default: [],
           },
           replies: [

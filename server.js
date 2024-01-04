@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import bodyParser from 'body-parser';
 
 import userRoutes from "./routes/userRoutes.js";
+import postRoutes from "./routes/postRoutes.js";
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // parse application/x-www-form-urlencoded true means we can send nested objects in the url
-app.use(bodyParser.urlencoded({ extended: true })) 
+app.use(bodyParser.urlencoded({ extended: true }))
 // parse application/json
 app.use(bodyParser.json())
 
@@ -26,6 +27,7 @@ app.use(cookieParser()); // to parse cookies
 
 // routes
 app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
 // app.get("/api/users/signup", (req, res) => {
 //      res.send("API is running...");
 // });

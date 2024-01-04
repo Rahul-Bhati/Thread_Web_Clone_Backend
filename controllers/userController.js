@@ -2,6 +2,23 @@ import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
 
+// @desc    Get user profile
+const getUserProfile = async (req, res) => {
+     const { username } = req.params;
+
+     try {
+          const user = await User.findOne({ username }).select("-password").select("-updatedAt") ; // select all the fields except password and updatedAt fields
+          console.log(username )
+          if (!user) return res.status(400).json({ message: "User not found" });
+
+          res.status(200).json(user);
+          
+     } catch (error) {
+          console.error(`Error: ${error.message}`);
+          res.status(500).json({ message: error.message });
+     }
+}
+
 // @desc    Signup a new user
 const signupUser = async (req, res) => {
      try {
@@ -131,8 +148,8 @@ const updateUser = async (req, res) => {
           let user = await User.findById(userId);
           if (!user) return res.status(400).json({ message: "User not found" });
 
-          if(req.params.id !== userId) return res.status(400).json({ message: "You cannot update other user's profile" }); // check if the user is trying to update other user's profile
-          
+          if (req.params.id !== userId) return res.status(400).json({ message: "You cannot update other user's profile" }); // check if the user is trying to update other user's profile
+
           if (password) {
                const salt = await bcrypt.genSalt(10);
                const hashedPassword = await bcrypt.hash(password, salt);
@@ -154,4 +171,4 @@ const updateUser = async (req, res) => {
      }
 }
 
-export { signupUser, loginUser, logoutUser, followUnfollowUser, updateUser };
+export { signupUser, loginUser, logoutUser, followUnfollowUser, updateUser, getUserProfile };
