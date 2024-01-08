@@ -21,7 +21,7 @@ const postSchema = mongoose.Schema(
           },
           replies: [
                {
-                    usetId: {
+                    userId: {
                          type: mongoose.Schema.Types.ObjectId,
                          required: true,
                          ref: "User",

@@ -1,6 +1,5 @@
 import Post from "../models/postModel.js";
 import User from "../models/userModel.js";
-import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
 
 const createPost = async (req, res) => {
      const { postedBy, text, img } = req.body;
@@ -9,7 +8,7 @@ const createPost = async (req, res) => {
           if (!postedBy || !text) {
                return res.status(400).json({ message: "postedBy and text fields required!" });
           }
-
+               // what is postedBy? postedBy is the id of the user who is creating the post
           const user = await User.findById(postedBy);
           if (!user) {
                return res.status(404).json({ message: "User not found!" });
@@ -99,4 +98,52 @@ const likeAndUnlikePost = async (req, res) => {
      }
 }
 
-export { createPost, getPost, deletePost, likeAndUnlikePost };
+const replyToPost = async (req, res) => {
+     try {
+          const { text } = req.body;
+          const postId = req.params.id;
+          const userId = req.user._id;
+          const userProfilePic = req.user.profilePic;
+          const username = req.user.username;
+
+          if (!text) {
+               return res.status(400).json({ error: "Text field is required" });
+          }
+
+          const post = await Post.findById(postId);
+          if (!post) {
+               return res.status(404).json({ error: "Post not found" });
+          }
+
+          const reply = { userId, text, userProfilePic, username };
+
+          post.replies.push(reply);
+
+          await post.save();
+
+          res.status(200).json(reply);
+     } catch (err) {
+          res.status(500).json({ error: err.message });
+     }
+};
+
+const getFeedPost = async (req, res) => {
+     try {
+          const userId = req.user._id;
+          const user = await User.findById(userId);
+          if (!user) {
+               return res.status(404).json({ message: "User not found!" });
+          }
+
+          const following = user.following;
+
+          const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({ createdAt: -1 }); // ...following, req.user._id is used to include the posts of the logged in user as well in the feed posts list 
+
+          res.status(200).json({ message: "Feed posts found!", feedPosts });
+     } catch (error) {
+          console.log(error.message);
+          res.status(500).json({ message: error.message });
+     }
+}
+
+export { createPost, getPost, deletePost, likeAndUnlikePost, replyToPost, getFeedPost };

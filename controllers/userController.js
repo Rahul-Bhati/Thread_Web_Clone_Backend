@@ -9,13 +9,13 @@ const getUserProfile = async (req, res) => {
      try {
           const user = await User.findOne({ username }).select("-password").select("-updatedAt") ; // select all the fields except password and updatedAt fields
           console.log(username )
-          if (!user) return res.status(400).json({ message: "User not found" });
+          if (!user) return res.status(400).json({ error: "User not found" });
 
           res.status(200).json(user);
           
      } catch (error) {
           console.error(`Error: ${error.message}`);
-          res.status(500).json({ message: error.message });
+          res.status(500).json({ error: error.message });
      }
 }
 
@@ -26,7 +26,7 @@ const signupUser = async (req, res) => {
           const user = await User.findOne({ $or: [{ email }, { username }] }); // find user by email or username
 
           if (user) {
-               res.status(400).json({ message: "User already exists" });
+               res.status(400).json({ error: "User already exists" });
                return;
           }
 
@@ -56,11 +56,11 @@ const signupUser = async (req, res) => {
                     password: newUser.password,
                });
           } else {
-               res.status(400).json({ message: "Invalid user data" });
+               res.status(400).json({ error: "Invalid user data" });
           }
      } catch (error) {
           console.error(`Error: ${error.message}`);
-          res.status(500).json({ message: error.message });
+          res.status(500).json({ error: error.message });
      }
 }
 
@@ -74,7 +74,7 @@ const loginUser = async (req, res) => {
 
           const isPasswordCorrect = await bcrypt.compare(password, user?.password || ""); // if user is null, then user.password will throw an error, so we use optional chaining operator (?.) and if user is null, then we pass an empty string as the second argument to compare function
 
-          if (!user || !isPasswordCorrect) return res.status(400).json({ message: "Invalid credentials" });
+          if (!user || !isPasswordCorrect) return res.status(400).json({ error: "Invalid credentials" });
 
           generateTokenAndSetCookie(user._id, res); // generate token and set cookie in the response object
 
@@ -88,7 +88,7 @@ const loginUser = async (req, res) => {
      }
      catch (error) {
           console.error(`Error: ${error.message}`);
-          res.status(500).json({ message: error.message });
+          res.status(500).json({ error: error.message });
      }
 }
 
@@ -99,7 +99,7 @@ const logoutUser = (req, res) => {
      }
      catch (error) {
           console.error(`Error: ${error.message}`);
-          res.status(500).json({ message: error.message });
+          res.status(500).json({ error: error.message });
      }
 }
 
@@ -112,9 +112,9 @@ const followUnfollowUser = async (req, res) => {
           const userId = req.user._id.toString(); // id of the current user
           // id of the user who is trying to follow/unfollow yourself
 
-          if (id === userId) return res.status(400).json({ message: "You cannot follow/unfollow yourself" });
+          if (id === userId) return res.status(400).json({ error: "You cannot follow/unfollow yourself" });
 
-          if (!userToModify || !currentUser) return res.status(400).json({ message: "User not found" });
+          if (!userToModify || !currentUser) return res.status(400).json({ error: "User not found" });
 
           const isFollowing = currentUser.following.includes(id); // check if the current user is already following the user to follow/unfollow
 
@@ -135,7 +135,7 @@ const followUnfollowUser = async (req, res) => {
      }
      catch (error) {
           console.error(`Error of follow and unfollow: ${error.message}`);
-          res.status(500).json({ message: error.message });
+          res.status(500).json({ error: error.message });
      }
 
 }
@@ -146,9 +146,9 @@ const updateUser = async (req, res) => {
 
      try {
           let user = await User.findById(userId);
-          if (!user) return res.status(400).json({ message: "User not found" });
+          if (!user) return res.status(400).json({ error: "User not found" });
 
-          if (req.params.id !== userId) return res.status(400).json({ message: "You cannot update other user's profile" }); // check if the user is trying to update other user's profile
+          if (req.params.id !== userId) return res.status(400).json({ error: "You cannot update other user's profile" }); // check if the user is trying to update other user's profile
 
           if (password) {
                const salt = await bcrypt.genSalt(10);
@@ -167,7 +167,7 @@ const updateUser = async (req, res) => {
           res.status(200).json({ message: "User updated successfully", user });
      } catch (error) {
           console.error(`Error: ${error.message}`);
-          res.status(500).json({ message: error.message });
+          res.status(500).json({ error: error.message });
      }
 }
 
