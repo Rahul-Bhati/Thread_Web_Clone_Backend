@@ -1,18 +1,19 @@
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
+import { v2 as cloudinary } from "cloudinary";
 
 // @desc    Get user profile
 const getUserProfile = async (req, res) => {
      const { username } = req.params;
 
      try {
-          const user = await User.findOne({ username }).select("-password").select("-updatedAt") ; // select all the fields except password and updatedAt fields
-          console.log(username )
+          const user = await User.findOne({ username }).select("-password").select("-updatedAt"); // select all the fields except password and updatedAt fields
+          console.log(username)
           if (!user) return res.status(400).json({ error: "User not found" });
 
           res.status(200).json(user);
-          
+
      } catch (error) {
           console.error(`Error: ${error.message}`);
           res.status(500).json({ error: error.message });
@@ -70,7 +71,7 @@ const loginUser = async (req, res) => {
           const { username, password } = req.body;
           const user = await User.findOne({ username });
 
-          console.log(user, req.body)
+          // console.log(user, req.body)
 
           const isPasswordCorrect = await bcrypt.compare(password, user?.password || ""); // if user is null, then user.password will throw an error, so we use optional chaining operator (?.) and if user is null, then we pass an empty string as the second argument to compare function
 
@@ -83,7 +84,8 @@ const loginUser = async (req, res) => {
                name: user.name,
                email: user.email,
                username: user.username,
-               password: user.password,
+               bio: user.bio,
+               profilePic: user.profilePic,
           });
      }
      catch (error) {
@@ -141,7 +143,8 @@ const followUnfollowUser = async (req, res) => {
 }
 
 const updateUser = async (req, res) => {
-     const { name, email, username, password, profilePic, bio } = req.body;
+     const { name, email, username, password, bio } = req.body;
+     let { profilePic } = req.body;
      const userId = req.user._id.toString();
 
      try {
@@ -154,6 +157,19 @@ const updateUser = async (req, res) => {
                const salt = await bcrypt.genSalt(10);
                const hashedPassword = await bcrypt.hash(password, salt);
                user.password = hashedPassword;
+          }
+
+          
+          // upload the profile pic to cloudinary
+          if (profilePic) {
+               if (user.profilePic) {
+                    // delete the previous profile pic from cloudinary
+                    const imageId = user.profilePic.split("/").pop().split(".")[0]; // get the image id from the profilePic url
+                    await cloudinary.uploader.destroy(imageId);
+               }
+
+               const uploadedResponse = await cloudinary.uploader.upload(profilePic);
+               profilePic = uploadedResponse.secure_url;
           }
 
           user.name = name || user.name;

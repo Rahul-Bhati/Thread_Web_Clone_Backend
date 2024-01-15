@@ -8,12 +8,21 @@ import bodyParser from 'body-parser';
 import userRoutes from "./routes/userRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 
+import { v2 as cloudinary } from 'cloudinary';
+
 dotenv.config();
 
 connectDB();
 const app = express();
 
 const PORT = process.env.PORT || 5000;
+
+// cloudinary config
+cloudinary.config({
+     cloud_name: process.env.CLOUDNARY_CLOUD_NAME,
+     api_key: process.env.CLOUDNARY_API_KEY,
+     api_secret: process.env.CLOUDNARY_API_SECRET
+});
 
 // parse application/x-www-form-urlencoded true means we can send nested objects in the url
 app.use(bodyParser.urlencoded({ extended: true }))
