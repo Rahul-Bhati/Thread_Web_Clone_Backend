@@ -27,7 +27,7 @@ cloudinary.config({
 // parse application/x-www-form-urlencoded true means we can send nested objects in the url
 app.use(bodyParser.urlencoded({ extended: true }))
 // parse application/json
-app.use(bodyParser.json())
+app.use(bodyParser.json({limit: '50mb'}))
 
 app.use(cookieParser()); // to parse cookies
 

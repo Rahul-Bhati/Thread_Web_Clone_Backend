@@ -9,7 +9,7 @@ const getUserProfile = async (req, res) => {
 
      try {
           const user = await User.findOne({ username }).select("-password").select("-updatedAt"); // select all the fields except password and updatedAt fields
-          console.log(username)
+          // console.log(username)
           if (!user) return res.status(400).json({ error: "User not found" });
 
           res.status(200).json(user);
