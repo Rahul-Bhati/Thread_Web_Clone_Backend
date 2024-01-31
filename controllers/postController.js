@@ -4,13 +4,13 @@ import { v2 as cloudinary } from "cloudinary";
 
 const createPost = async (req, res) => {
      const { postedBy, text } = req.body;
-     let {img} = req.body;
+     let { img } = req.body;
 
      try {
           if (!postedBy || !text) {
                return res.status(400).json({ message: "postedBy and text fields required!" });
           }
-               // what is postedBy? postedBy is the id of the user who is creating the post
+          // what is postedBy? postedBy is the id of the user who is creating the post
           const user = await User.findById(postedBy);
           if (!user) {
                return res.status(404).json({ message: "User not found!" });
@@ -146,7 +146,7 @@ const getFeedPost = async (req, res) => {
 
           const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({ createdAt: -1 }); // ...following, req.user._id is used to include the posts of the logged in user as well in the feed posts list 
 
-          res.status(200).json({ message: "Feed posts found!", feedPosts });
+          res.status(200).json(feedPosts);
      } catch (error) {
           console.log(error.message);
           res.status(500).json({ message: error.message });
