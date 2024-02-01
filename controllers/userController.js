@@ -11,7 +11,7 @@ import mongoose from "mongoose";
 const getUserProfile = async (req, res) => {
      // We will fetch user profile either with username or userId
      // query is either username or userId
-     const query  = req.params.username;
+     const { query } = req.params;
 
      try {
           let user;
@@ -172,7 +172,7 @@ const updateUser = async (req, res) => {
                user.password = hashedPassword;
           }
 
-          
+
           // upload the profile pic to cloudinary
           if (profilePic) {
                if (user.profilePic) {
