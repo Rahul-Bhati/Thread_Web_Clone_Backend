@@ -193,7 +193,22 @@ const updateUser = async (req, res) => {
 
           user = await user.save();
 
-          res.status(200).json({ message: "User updated successfully", user });
+          // find all the posts of the user and update the username and profilePic of the user in all the posts
+          await Post.updateMany(
+               { "replies.userId": userId },
+               {
+                    "$set": {
+                         "replies.$[reply].username": user.username,
+                         "replies.$[reply].userProfilePic": user.profilePic
+                    }
+               },
+               { arrayFilters: [{ "reply.userId": userId }] }
+          ); // update the username of the user in all the posts
+
+          // password should not be sent in the response so it set to null
+          user.password = null;
+
+          res.status(200).json(user);
      } catch (error) {
           console.error(`Error: ${error.message}`);
           res.status(500).json({ error: error.message });
